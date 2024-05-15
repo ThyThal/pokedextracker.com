@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfo } from '@fortawesome/free-solid-svg-icons';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
-
+import { usePokemon } from '../../../hooks/queries/pokemon';
 import { PokemonName } from '../../library/PokemonName';
 import { ReactGA } from '../../../utils/analytics';
 import { iconClass } from '../../../utils/pokemon';
@@ -23,6 +23,7 @@ import type { UICapture } from './use-tracker';
 interface Props {
   capture: UICapture | null;
   delay?: number;
+  selectedPokemon: number;
   setSelectedPokemon: Dispatch<SetStateAction<number>>;
 }
 
@@ -116,14 +117,30 @@ export function Pokemon ({ capture, delay = 0, setSelectedPokemon }: Props) {
     return null;
   }
 
+  const { data: pokemon } = usePokemon(capture.pokemon.id, {
+    dex_type: dex.dex_type.id,
+  });
+  let foundVersion = '';
+  pokemon?.locations.some((location) =>
+    location.value.concat(location.values).some((v) =>
+      (v.toLowerCase().includes('scarlet') && (foundVersion = 'Scarlet')) ||
+      (v.toLowerCase().includes('violet') && (foundVersion = 'Violet'))
+    )
+  );
+  if (!foundVersion) {
+    foundVersion = dex.game.name;
+  }
+
   const classes = {
     pokemon: true,
     viewing: !session || session.id !== user.id,
     captured: capture.captured,
     pending: capture.pending,
+    exclusive: foundVersion.toLowerCase() !== dex.game.name.toLowerCase() && !capture.captured,
   };
 
   const regional = dex.dex_type.tags.includes('regional');
+  // Ensure Pokémon is defined before accessing its properties
   const idToDisplay = regional ? (capture.pokemon.dex_number === -1 ? '---' : capture.pokemon.dex_number) : nationalId(capture.pokemon.national_id);
   const paddingDigits = dex.total >= 1000 ? 4 : 3;
 

@@ -499,6 +499,11 @@ header {
     background: rgba($brand-primary-light, .5);
   }
 
+  &.exclusive {
+    background: rgba($pokemon-exclusive-light, .5);
+    border-color: darken($pokemon-exclusive-dark, 5%);
+  }
+
   &.captured {
     background-color: $brand-primary-light;
 
